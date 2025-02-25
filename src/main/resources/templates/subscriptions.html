@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Subscriptions</title>
+</head>
+<body>
+<h1>Your Subscriptions</h1>
+<p th:if="${subscriptions == null}">No subscriptions available</p>
+<div th:if="${subscriptions != null}">
+    <p>Fetched subscriptions will display here.</p>
+    <!-- Add subscription details -->
+</div>
+</body>
+</html>
