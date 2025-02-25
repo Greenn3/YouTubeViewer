@@ -1,62 +1,39 @@
 package dev.greenn.youtubeviewer;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
-import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
-import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-
-import java.net.URI;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import java.io.IOException;
 
 @Configuration
 public class SecurityConfig {
-    private final CustomOAuth2UserService customOAuth2UserService;
 
-    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService) {
-        this.customOAuth2UserService = customOAuth2UserService;
+
+    public SecurityConfig() {
+
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login").permitAll() // Allow login page
-                        .anyRequest().authenticated() // Require authentication for everything else
-                )
-                .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .oidcUserService(new OidcUserService()) // OpenID Connect (for Google)
-                                .userService(customOAuth2UserService) // Use our custom user service
-                        )
-                        .defaultSuccessUrl("/", true) // Redirect after successful login
-                )
-                .sessionManagement(session -> session
-                        .maximumSessions(1) // Allow only one session per user
-                        .expiredUrl("/login?expired=true") // Redirect if session expires
-                )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/")
-                        .permitAll()
-
-                );
-
-        return http.build();
+        return http.authorizeHttpRequests(registry ->{
+            registry.requestMatchers("/", "/subsciptions").permitAll();
+            registry.anyRequest().authenticated();
+        })
+                .oauth2Login(oauth2Login -> new AuthenticationSuccessHandler() {
+                    @Override
+                    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+                        response.sendRedirect("/profile");
+                    }
+                })
+               // .formLogin(Customizer.withDefaults())
+                .build();
     }
 
-    @Bean
-    public LogoutSuccessHandler oidcLogoutSuccessHandler(ClientRegistrationRepository clientRegistrationRepository) {
-        OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler =
-                new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
-        oidcLogoutSuccessHandler.setPostLogoutRedirectUri(String.valueOf(URI.create("http://localhost:8090/")));
-        return oidcLogoutSuccessHandler;
-    }
-    @Bean
-    public SessionRegistry sessionRegistry() {
-        return new SessionRegistryImpl();
-    }
+
 }
