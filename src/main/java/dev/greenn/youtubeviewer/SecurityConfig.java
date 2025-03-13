@@ -26,8 +26,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
+
                         .requestMatchers("/", "/index", "/index.html", "/styles.css").permitAll()
-                        .anyRequest().authenticated()
+                       // .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .oauth2Login(Customizer.withDefaults()) // ✅ Corrected way in Spring Security 6
                 .logout(logout -> logout

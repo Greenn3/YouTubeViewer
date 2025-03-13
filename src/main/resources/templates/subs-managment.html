@@ -3,8 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
 </head>
 <body>
 
+<div th:each="category :${categories}">
+   <form th:action="@{/assign-channels}" method="post">
+       <input type="hidden" name="categoryId" th:value="${category.id}">
+       <h3 th:text="${category.getName()}"></h3>
+    <label for="channel">Choose a channels:</label>
+    <select id="channel" name="channelIds" class="channel-select" multiple>
+        <option th:each="channel : ${channels}" th:value="${channel.id}" th:text="${channel.name}"></option>
+    </select>
+<button type="submit" th:onclick="">Save</button>
+   </form>
+</div>
+
+<script href="script.js"></script>
 </body>
 </html>

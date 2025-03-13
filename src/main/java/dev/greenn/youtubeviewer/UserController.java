@@ -8,10 +8,7 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -132,22 +129,7 @@ public class UserController {
         return channels;
     }
 
-    private List<String> extractChannelNames(String jsonResponse) {
-        List<String> channelNames = new ArrayList<>();
-        try {
-            JsonNode root = objectMapper.readTree(jsonResponse);
-            JsonNode items = root.path("items");
 
-            for (JsonNode item : items) {
-                JsonNode snippet = item.path("snippet");
-                String title = snippet.path("title").asText();
-                channelNames.add(title);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return channelNames;
-    }
 
 
 
@@ -161,7 +143,36 @@ public class UserController {
     }
     @GetMapping("/subs-managment")
     public String subManegment(Model model){
-return"";
+        model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("channels", channelRepository.findAll());
+
+return"/subs-managment";
+    }
+
+    @PostMapping("/assign-channels")
+    public String assignChannels(
+            @RequestParam ("categoryId") String categoryId,
+            @RequestParam ("channelIds") List<String> channelIds
+    ){
+        Category category = categoryRepository.findById(categoryId).orElse(null);
+        if (category != null) {
+            // Ensure channelIds list is initialized
+            if (category.getChannelIds() == null) {
+                category.setChannelIds(new ArrayList<>());
+            }
+
+            // Add only new channels (avoid duplicates)
+            for (String channelId : channelIds) {
+                if (!category.getChannelIds().contains(channelId)) {
+                    category.getChannelIds().add(channelId);
+                }
+            }
+
+            // Save updated category to MongoDB
+            categoryRepository.save(category);
+        }
+
+        return "redirect:subs-managment";
     }
 
 
