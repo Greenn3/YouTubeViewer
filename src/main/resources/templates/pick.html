@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="script.js" defer></script>
+
+</head>
+<body>
+Pick category
+<form action="/videos" method="get">
+<select id="category" name="categories" class="category-select" onchange="updateDivText()" >
+    <option th:each="category : ${categories}" th:value="${category.getId()}" th:text="${category.getName()}"></option>
+</select>
+    <br>
+    <button type="submit">Fetch Videos</button>
+</form>
+
+
+
+<div id="temp-content">
+
+</div>
+
+</body>
+</html>
