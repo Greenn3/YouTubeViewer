@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="script.js" defer></script>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<a href="/logout"> Logout</a>
+<br>
+<a href="/pick">Pick category</a>
+<a href="/login">Log in with Google</a>
+<form th:action="@{/add-category}" th:object="${category}" method="post">
+    <label for="name">Category Name:</label>
+    <input type="text" id="name" th:field="*{name}" required>
+
+    <button type="submit">Create</button>
+</form>
+<a href="/subs-managment"> Subs Managment</a>
+</body>
+</html>

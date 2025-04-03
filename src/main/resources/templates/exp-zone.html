@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<h1>YouTube Viewer</h1>
+<div id="grid">
+    <div class="column">
+        <iframe
+                width="560"
+                height="315"
+                th:src="'https://www.youtube.com/embed/' + ${videoId}"
+                title="YouTube video player"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+        </iframe>
+        <h1>Welcome to YouTube Viewer</h1>
+        <!--<div th:if="${name != null}">-->
+        <!--    <p>Logged in as: <b th:text="${name}"></b> (<span th:text="${email}"></span>)</p>-->
+        <a href="/subscriptions">View Subscriptions</a>
+        <!--    <div class="card">-->
+        <!--        <img th:src="${photo}" alt="User Photo">-->
+        <!--        <h2 th:text="Username + ${name}">User Name</h2>-->
+        <!--        <p th:text="${email}">user@example.com</p>-->
+        <!--&lt;!&ndash;    </div>&ndash;&gt;-->
+        <!--</div>-->
+
+        <div th:if="${name == null}">
+            <a href="/login">Log in with Google</a>
+        </div>
+        <a href="/profile">Profile </a>
+        <br>
+        <a href="/logout"> Logout</a>
+        <br>
+        <a href="/pick">Pick category</a>
+    </div>
+    <div class="column">
+        <h3>Mongo testing</h3>
+        <div class="mongo-testing">
+            <div class="temp-column">
+                <ul>
+                    <li th:each="category : ${categories}" th:text="${category.getName()}"></li>
+                </ul>
+            </div>
+            <div class="temp-column">
+                <ul>
+                    <li th:each="channel : ${channels}" th:text="${channel.getName()}"></li>
+                </ul>
+            </div>
+            <form th:action="@{/add-category}" th:object="${category}" method="post">
+                <label for="name">Category Name:</label>
+                <input type="text" id="name" th:field="*{name}" required>
+
+                <button type="submit">Create</button>
+            </form>
+            <a href="/subs-managment"> Subs Managment</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

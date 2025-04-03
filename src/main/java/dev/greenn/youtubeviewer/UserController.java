@@ -2,6 +2,7 @@ package dev.greenn.youtubeviewer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.Banner;
 import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
@@ -17,7 +18,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
-
 public class UserController {
 
 
@@ -148,7 +148,7 @@ model.addAttribute("categories", categoryRepository.findAll());
 
         Optional<Category> category = categoryRepository.findById(categoryId);
         System.out.println(categoryId);
-        List<String> channelIds = category.get().getChannelIds();
+
 
         List<String> ytIds = category.get().getChannelIds().stream()
                 .map(channelId -> channelRepository.findById(channelId)) // Fetch the Channel object
@@ -156,8 +156,8 @@ model.addAttribute("categories", categoryRepository.findAll());
                 .map(optionalChannel -> optionalChannel.get().getYtId()) // Extract ytId
                 .collect(Collectors.toList());
 
-        System.out.println(channelIds);
-model.addAttribute("channels", channelIds);
+
+
 List<String> videoIds = new ArrayList<>();
         ytIds.forEach(System.out::println);
 for(String id : ytIds){
@@ -168,6 +168,25 @@ model.addAttribute("videos", videoIds);
 return "watch";
     }
 
+    @RequestMapping("/yt-viewer-index")
+    public String goToMain(Model model){
+        model.addAttribute("videoId", "pUTe9vsZ8do");
+        model.addAttribute("categories",categoryRepository.findAll() );
+        model.addAttribute("channels", channelRepository.findAll());
+        model.addAttribute("category", new Category());
+
+        return "yt-viewer-index";
+    }
+
+    @RequestMapping("/exp-zone")
+    public String experiment(Model model){
+        model.addAttribute("videoId", "pUTe9vsZ8do");
+        model.addAttribute("categories",categoryRepository.findAll() );
+        model.addAttribute("channels", channelRepository.findAll());
+        model.addAttribute("category", new Category());
+
+        return "exp-zone";
+    }
 
 
 }
