@@ -9,12 +9,19 @@
 </head>
 <body>
 Pick category
-<form action="/videos" method="get">
-<select id="category" name="categories" class="category-select" onchange="updateDivText()" >
+<form action="/watch" method="get">
+<select id="category" name="categoryId" class="category-select"  >
     <option th:each="category : ${categories}" th:value="${category.getId()}" th:text="${category.getName()}"></option>
 </select>
+    <select id="time" name="days">
+        <option value="1">24h</option>
+        <option value="2">2days</option>
+        <option value="3">3days</option>
+        <option value="7">week</option>
+        <option value="30">month</option>
+    </select>
     <br>
-    <button type="submit">Fetch Videos</button>
+    <button type="submit" >Fetch Videos</button>
 </form>
 
 

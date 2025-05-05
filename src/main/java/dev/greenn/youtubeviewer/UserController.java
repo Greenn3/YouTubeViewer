@@ -2,14 +2,13 @@ package dev.greenn.youtubeviewer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.Banner;
-import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -27,18 +26,19 @@ public class UserController {
     private final CategoryRepository categoryRepository;
     private final ChannelRepository channelRepository;
     private final ApiService apiService;
-
+private  final YouTubeDataFetcher dataFetcher;
   
     @Value("${api.key}")
     private String API_KEY;
 @Autowired
-    public UserController(OAuth2AuthorizedClientService authorizedClientService, ApiService apiService, DataService dataService, CategoryRepository categoryRepository, ChannelRepository channelRepository) {
+    public UserController(OAuth2AuthorizedClientService authorizedClientService, ApiService apiService, DataService dataService, CategoryRepository categoryRepository, ChannelRepository channelRepository, YouTubeDataFetcher dataFetcher) {
         this.authorizedClientService = authorizedClientService;
 this.apiService = apiService;
         this.dataService = dataService;
         this.categoryRepository = categoryRepository;
         this.channelRepository = channelRepository;
-    }
+    this.dataFetcher = dataFetcher;
+}
 @RequestMapping("/")
     public String home(Model model, OAuth2AuthenticationToken token) {
 //        model.addAttribute("name", token.getPrincipal().getAttribute("name"));
@@ -76,7 +76,7 @@ this.apiService = apiService;
 
         String accessToken = client.getAccessToken().getTokenValue();
      //   List<String> subscriptions = fetchSubscriptions(accessToken, null, new ArrayList<>());
-        List<Channel> subscriptions =apiService.fetchSubscriptions(accessToken, null, new ArrayList<>());
+        List<Channel> subscriptions =dataFetcher.fetchSubscriptions(accessToken, null, new ArrayList<>());
        for(Channel channel : subscriptions){
            if(!channelRepository.findByYtId(channel.ytId).isPresent()){
                channelRepository.save(channel);
@@ -144,7 +144,7 @@ model.addAttribute("categories", categoryRepository.findAll());
     }
 
     @RequestMapping("/watch")
-    public String watch(@RequestParam String categoryId, Model model){
+    public String watch(@RequestParam String categoryId, Model model, @RequestParam String days){
 
         Optional<Category> category = categoryRepository.findById(categoryId);
         System.out.println(categoryId);
@@ -161,8 +161,12 @@ model.addAttribute("categories", categoryRepository.findAll());
 List<String> videoIds = new ArrayList<>();
         ytIds.forEach(System.out::println);
 for(String id : ytIds){
- videoIds.add(apiService.getLatestVideo(id, API_KEY));
+// videoIds.add(apiService.getLatestVideo(id, API_KEY));
+   for(String vidId : dataFetcher.getVideosAddedAfter(id, API_KEY, days)){
+       videoIds.add(vidId);
+    }
 }
+//apiService.getLatestVideoIds(ytIds, API_KEY);
 
 model.addAttribute("videos", videoIds);
 return "watch";
@@ -187,6 +191,17 @@ return "watch";
 
         return "exp-zone";
     }
+
+//    @RequestMapping("/api-test")
+//    public String testApi(Model model) {
+//
+//
+//
+//        List<String> list = dataFetcher.getVideos(API_KEY).block();
+//        model.addAttribute("list" , list);
+//        return "/api-test";
+//    }
+//
 
 
 }

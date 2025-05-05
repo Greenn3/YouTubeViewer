@@ -5,20 +5,107 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class ApiService {
     private final WebClient webClient;
-    private final ObjectMapper objectMapper;
 
-    public ApiService(WebClient.Builder webClientBuilder, ObjectMapper objectMapper) {
-        this.webClient = webClientBuilder.baseUrl("https://www.googleapis.com/youtube/v3").build();
 
-        this.objectMapper = objectMapper;
+    public ApiService(WebClient.Builder builder) {
+        this.webClient = builder
+                .baseUrl("https://www.googleapis.com/youtube/v3")
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+                .build();
     }
+    public List<String> getLatestVideoIds(List<String> channelIds, String apiKey) {
+        List<String> allVideoIds = new ArrayList<>();
+
+        for (String channelId : channelIds) {
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("part", "snippet");
+            params.add("channelId", channelId);
+            params.add("maxResults", "3");
+            params.add("order", "date");
+            params.add("key", apiKey);
+
+            String response = fetchYoutubeData("/search", params).block();
+
+            try {
+                JsonNode root = new ObjectMapper().readTree(response);
+                for (JsonNode item : root.path("items")) {
+                    String videoId = item.path("id").path("videoId").asText();
+                    allVideoIds.add(videoId);
+                }
+            } catch (Exception e) {
+                e.printStackTrace(); // handle better in prod
+            }
+        }
+
+        return allVideoIds;
+    }
+
+    public Mono<String> fetchYoutubeData(String path, MultiValueMap<String, String> queryParams) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path(path)
+                        .queryParams(queryParams)
+                        .build()
+                )
+                .retrieve()
+                .bodyToMono(String.class);
+    }
+//    public Mono<String> getLatestVideo2(String channelId, String apiKey) {
+//        // Step 1: Get uploads playlist ID
+//        MultiValueMap<String, String> channelParams = new LinkedMultiValueMap<>();
+//        channelParams.add("part", "contentDetails");
+//        channelParams.add("id", channelId);
+//        channelParams.add("key", apiKey);
+//
+//        return fetchYoutubeData("/channels", channelParams)
+//                .flatMap(channelResponse -> {
+//                    try {
+//                        JsonNode root = objectMapper.readTree(channelResponse);
+//                        String uploadsPlaylistId = root.path("items").get(0)
+//                                .path("contentDetails")
+//                                .path("relatedPlaylists")
+//                                .path("uploads")
+//                                .asText();
+//
+//                        // Step 2: Get latest video from uploads playlist
+//                        MultiValueMap<String, String> playlistParams = new LinkedMultiValueMap<>();
+//                        playlistParams.add("part", "snippet");
+//                        playlistParams.add("playlistId", uploadsPlaylistId);
+//                        playlistParams.add("maxResults", "1");
+//                        playlistParams.add("key", apiKey);
+//
+//                        return fetchYoutubeData("/playlistItems", playlistParams);
+//                    } catch (JsonProcessingException e) {
+//                        return Mono.error(new RuntimeException("Failed to parse channel response", e));
+//                    }
+//                })
+//                .map(videoResponse -> {
+//                    try {
+//                        JsonNode videoRoot = objectMapper.readTree(videoResponse);
+//                        return videoRoot.path("items").get(0)
+//                                .path("snippet")
+//                                .path("resourceId")
+//                                .path("videoId")
+//                                .asText();
+//                    } catch (JsonProcessingException e) {
+//                        throw new RuntimeException("Failed to parse video response", e);
+//                    }
+//                });
+//    }
+//
+
 
     public String getLatestVideo(String channelId, String apiKey)  {
         String channelUrl = "https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=" + channelId + "&key=" + apiKey;
@@ -52,6 +139,7 @@ public class ApiService {
         return  videoId;
     }
 
+
   List<Channel> fetchSubscriptions(String accessToken, String nextPageToken, List<Channel> channels) {
         try {
             // Make pageToken final for lambda usage
@@ -74,7 +162,7 @@ public class ApiService {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block(); // Synchronously fetch response
-
+ObjectMapper objectMapper = new ObjectMapper();
             JsonNode root = objectMapper.readTree(response);
             JsonNode items = root.path("items");
 
