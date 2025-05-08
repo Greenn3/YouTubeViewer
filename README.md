@@ -25,3 +25,5 @@ The current plan is to build an app where users can:
 ⚠️ This is a **work in progress**—expect changes!  
 
 Stay tuned for updates! 😊  
+
+Update, probaly not gonna work as intended, current logic consumes too much api quota
