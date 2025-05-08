@@ -27,7 +27,7 @@ public class UserController {
     private final ChannelRepository channelRepository;
     private final ApiService apiService;
 private  final YouTubeDataFetcher dataFetcher;
-  
+
     @Value("${api.key}")
     private String API_KEY;
 @Autowired
@@ -54,8 +54,7 @@ this.apiService = apiService;
     @PostMapping("/add-category")
     public String addCategory(@ModelAttribute Category category){
         categoryRepository.save(category);
-        return "redirect:/";
-
+        return "redirect:/subs-managment";
     }
     @RequestMapping("/user")
     public Principal user(Principal user){
@@ -102,10 +101,26 @@ this.apiService = apiService;
     }
     @GetMapping("/subs-managment")
     public String subManegment(Model model){
-        model.addAttribute("categories", categoryRepository.findAll());
-        model.addAttribute("channels", channelRepository.findAll());
+        List<Category> categories = categoryRepository.findAll();
+        List<Channel> allChannels = channelRepository.findAll();
 
-return"/subs-managment";
+        // Add all categories and channels to the model
+        model.addAttribute("categories", categories);
+        model.addAttribute("allChannels", allChannels);
+        model.addAttribute("category", new Category());
+
+        // For each category, find the channels that are assigned to it
+        categories.forEach(category -> {
+            List<Channel> assignedChannels = new ArrayList<>();
+            if (category.getChannelIds() != null && !category.getChannelIds().isEmpty()) {
+                for (String channelId : category.getChannelIds()) {
+                    channelRepository.findById(channelId).ifPresent(assignedChannels::add);
+                }
+            }
+            model.addAttribute("assignedChannels_" + category.getId(), assignedChannels);
+        });
+
+        return "subs-managment";
     }
 
     @PostMapping("/assign-channels")
@@ -126,6 +141,23 @@ return"/subs-managment";
                     category.getChannelIds().add(channelId);
                 }
             }
+
+            // Save updated category to MongoDB
+            categoryRepository.save(category);
+        }
+
+        return "redirect:subs-managment";
+    }
+
+    @PostMapping("/remove-channel")
+    public String removeChannel(
+            @RequestParam("categoryId") String categoryId,
+            @RequestParam("channelId") String channelId
+    ){
+        Category category = categoryRepository.findById(categoryId).orElse(null);
+        if (category != null && category.getChannelIds() != null) {
+            // Remove the channel from the category
+            category.getChannelIds().remove(channelId);
 
             // Save updated category to MongoDB
             categoryRepository.save(category);

@@ -1,26 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
-    <script src="script.js" defer></script>
+    <title>Watch Videos</title>
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-Here:
+    <div class="video-container">
+        <div class="navigation-arrow prev-arrow" onclick="prevVideo()">&lt;</div>
 
-<div th:each="video : ${videos}" >
+        <div id="current-video" class="videos">
+            <!-- The current video will be displayed here -->
+        </div>
 
-<iframe
-        width="560"
-        height="315"
-        th:src="'https://www.youtube.com/embed/' + ${video}"
-        title="YouTube video player"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen>
-</iframe>
-</div>
+        <div class="navigation-arrow next-arrow" onclick="nextVideo()">&gt;</div>
+    </div>
+
+    <script th:inline="javascript">
+        // Get the videos array from Thymeleaf
+        const videos = /*[[${videos}]]*/ [];
+        let currentIndex = 0;
+
+        // Function to display the current video
+        function displayCurrentVideo() {
+            const videoContainer = document.getElementById('current-video');
+            videoContainer.innerHTML = `
+                <iframe
+                    width="560"
+                    height="315"
+                    src="https://www.youtube.com/embed/${videos[currentIndex]}"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+            `;
+
+            // Update navigation arrows visibility
+            document.querySelector('.prev-arrow').style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
+            document.querySelector('.next-arrow').style.visibility = currentIndex === videos.length - 1 ? 'hidden' : 'visible';
+        }
+
+        // Function to go to the next video
+        function nextVideo() {
+            if (currentIndex < videos.length - 1) {
+                currentIndex++;
+                displayCurrentVideo();
+            }
+        }
+
+        // Function to go to the previous video
+        function prevVideo() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                displayCurrentVideo();
+            }
+        }
+
+        // Initialize the display
+        window.onload = function() {
+            if (videos.length > 0) {
+                displayCurrentVideo();
+            } else {
+                document.getElementById('current-video').innerHTML = '<p>No videos available</p>';
+            }
+        };
+    </script>
 </body>
 </html>
-

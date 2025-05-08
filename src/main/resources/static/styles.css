@@ -1,6 +1,48 @@
 #grid{
     display: grid;
     grid-template-columns: 1fr 1fr;
-
 }
 
+.video-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2rem auto;
+    max-width: 800px;
+}
+
+.videos {
+    justify-self: center;
+    background-color: dimgray;
+    padding: 2rem;
+    margin: 0 1rem;
+}
+
+.navigation-arrow {
+    font-size: 3rem;
+    font-weight: bold;
+    cursor: pointer;
+    color: #333;
+    background-color: #f0f0f0;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.navigation-arrow:hover {
+    background-color: #ddd;
+    color: #000;
+}
+
+.prev-arrow {
+    margin-right: 1rem;
+}
+
+.next-arrow {
+    margin-left: 1rem;
+}
